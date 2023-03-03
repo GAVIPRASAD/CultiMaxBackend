@@ -25,7 +25,20 @@ cloudinary.config({
     api_secret: process.env.CLOUDINARY_API_SECRET
 })
 
+function isSecure(req) {
+  if (req.headers['x-forwarded-proto']) {
+    return req.headers['x-forwarded-proto'] === 'https';
+  }
+  return req.secure;
+};
 
+app.use((req, res, next) => {
+  if (!isSecure(req)) {
+    res.redirect(301, `https://${req.headers.host}${req.url}`);
+  } else {
+    next();
+  }
+});
 // cors is used for proxy request without this it will throw error proxy cant be done
 app.use(cors());
 app.use(express.json());
